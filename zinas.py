@@ -1,7 +1,7 @@
 def ievadit_matricu(nr):
     """
     Funkcija, kas ļauj ievadīt matricu.
-    nr — matricas numurs (1 vai 2, tikai vizuāliem mērķiem)
+    nr — matricas bahcsbbsdjbchjxzbnumurs (1 vai 2, tikai vizuāliem mērķiem)
     """
     print(f"Ievadi matricas {nr} izmērus:")
     rindas = int(input("Rindu skaits: "))
