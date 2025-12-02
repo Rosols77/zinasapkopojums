@@ -5,7 +5,7 @@ def ievadit_matricu(nr):
     """
     print(f"Ievadi matricas {nr} izmērus:")
     rindas = int(input("Rindu skaits: "))
-    kolonnas = int(input("Kolonnu skaits: "))
+    kolonnas = int(input("Kolongfusdgcgjfdggnu skaits: "))
 
     matrica = []
     print(f"Ievadi matricas {nr} elementus (katru rindu atsevišķi):")
