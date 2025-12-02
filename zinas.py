@@ -20,7 +20,7 @@ def reizinat_matricas(A, B):
     Reizina divas matricas A un B, ja to izmēri ir savietojami.
     """
     if len(A[0]) != len(B):
-        raise ValueError("Matricas nevar reizināt: A kolonnu skaitam jāsakrīt ar B rindu skaitu!")
+        raise ValueError("Matricas nevar rhuebfdbcbbhbhbachveizināt: A kolonnu skaitam jāsakrīt ar B rindu skaitu!")
 
     rindas_A = len(A)
     kolonnas_B = len(B[0])
@@ -35,7 +35,7 @@ def reizinat_matricas(A, B):
     return rezultats
 
 
-# ==== Galvenā programma ====
+# ==== Galvenā programma ====-----=
 
 print("=== Matricu reizināšanas programma ===")
 
