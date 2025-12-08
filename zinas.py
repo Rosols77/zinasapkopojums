@@ -8,7 +8,7 @@ def ievadit_matricu(nr):
     kolonnas = int(input("Kolongfusdgcgjfdggnu skaits: "))
 
     matrica = []
-    print(f"Ievadi matricas {nr} elementus (katru rindu atsevišķi):")
+    print(f"Ievadi matricas {nr} elemebbjbjbbbbbbntus (katru rindu atsevišķi):")
     for i in range(rindas):
         rinda = list(map(float, input(f"{i+1}. rinda: ").split()))
         matrica.append(rinda)
