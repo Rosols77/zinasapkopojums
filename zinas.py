@@ -49,3 +49,4 @@ try:
         print(rinda)
 except ValueError as e:
     print("Kļūda:", e)
+print("izmaiņaaaaa")
