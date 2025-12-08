@@ -37,7 +37,7 @@ def reizinat_matricas(A, B):
 
 # ==== Galvenā programma ====-----=
 
-print("=== Matricu reizināšanas programma ===")
+print("=== Matricu reizināšanas programma i cuul ===")
 
 A = ievadit_matricu(1)
 B = ievadit_matricu(2)
