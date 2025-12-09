@@ -50,3 +50,4 @@ try:
 except ValueError as e:
     print("Kļūda:", e)
 print("izmaijhbbbbjbjbjbjbbņaaa")
+print("vai mes kko sapisam")
