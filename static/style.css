@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ziņu apkopotājs</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Ziņu apkopotājs</h1>
+    <ul>
+        {% for article in news %}
+            <li>
+                <a href="{{ article['link'] }}" target="_blank">{{ article['title'] }}</a>
+                ({{ article['source'] }})
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
