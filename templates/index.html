@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ziņu apkopotājs</title>
+</head>
+<body>
+
+<h1>Ziņu apkopotājs</h1>
+
+<ul>
+    {% for article in news %}
+        <li>{{ article.title }} ({{ article.source }})</li>
+    {% endfor %}
+</ul>
+
+</body>
+</html>
