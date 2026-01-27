@@ -1,18 +1,136 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Ziņu apkopotājs</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <h1>Ziņu apkopotājs</h1>
-    <ul>
-        {% for article in news %}
-            <li>
-                <a href="{{ article['link'] }}" target="_blank">{{ article['title'] }}</a>
-                ({{ article['source'] }})
-            </li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex flex-column flex-lg-row gap-3 mb-4">
+    <form class="flex-grow-1" method="get" action="{{ url_for('index') }}">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-lg-4">
+                <label class="form-label">Meklēt</label>
+                <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="piem., AI, Ukraina">
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label">Laiks</label>
+                <select name="days" class="form-select">
+                    <option value="">Visi</option>
+                    <option value="1" {% if selected_days == '1' %}selected{% endif %}>24h</option>
+                    <option value="7" {% if selected_days == '7' %}selected{% endif %}>7 dienas</option>
+                    <option value="30" {% if selected_days == '30' %}selected{% endif %}>Mēnesis</option>
+                </select>
+            </div>
+            <div class="col-6 col-lg-3">
+                <label class="form-label">Avots</label>
+                <select name="source" class="form-select">
+                    <option value="">Visi</option>
+                    {% for item in sources %}
+                        <option value="{{ item }}" {% if item == selected_source %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label">Kārtošana</label>
+                <select name="sort" class="form-select">
+                    <option value="time" {% if sort == 'time' %}selected{% endif %}>Pēc laika</option>
+                    <option value="coverage" {% if sort == 'coverage' %}selected{% endif %}>Pēc atspoguļojuma</option>
+                </select>
+            </div>
+            <div class="col-6 col-lg-1 d-grid">
+                <button class="btn btn-primary" type="submit">Meklēt</button>
+            </div>
+        </div>
+    </form>
+    <form class="align-self-end" method="post" action="{{ url_for('save_search') }}">
+        <input type="hidden" name="query" value="{{ query }}">
+        <button class="btn btn-outline-secondary" type="submit" {% if not query %}disabled{% endif %}>Saglabāt meklējumu</button>
+    </form>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-3">
+        <div class="card info-card">
+            <div class="card-body">
+                <h5 class="card-title">Atspoguļojums pēc tēmām</h5>
+                {% if topic_counts %}
+                    <ul class="list-unstyled mb-0">
+                        {% for topic, count in topic_counts.items() %}
+                            <li class="d-flex justify-content-between">
+                                <a href="{{ url_for('compare', topic=topic) }}">{{ topic }}</a>
+                                <span class="badge bg-primary">{{ count }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Nav datu.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        {% if articles %}
+            <div class="d-grid gap-3">
+                {% for article in articles %}
+                    <div class="card article-card">
+                        <div class="card-body">
+                            <div class="d-flex flex-column flex-lg-row justify-content-between gap-2">
+                                <div>
+                                    <h5 class="card-title">{{ article.title }}</h5>
+                                    <p class="card-text text-muted mb-1">
+                                        {{ article.source }} • {{ article.published_at[:16].replace('T', ' ') }}
+                                        {% if article.location %} • {{ article.location }}{% endif %}
+                                    </p>
+                                    <p class="card-text">{{ article.summary|safe }}</p>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <span class="badge bg-secondary">{{ article.topic }}</span>
+                                        <a class="btn btn-sm btn-outline-primary" href="{{ article.url }}" target="_blank">Lasīt pilnu</a>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column gap-2 align-self-start">
+                                    {% if article.id in saved_later %}
+                                        <form method="post" action="{{ url_for('unsave_article') }}">
+                                            <input type="hidden" name="article_id" value="{{ article.id }}">
+                                            <input type="hidden" name="tag" value="later">
+                                            <button class="btn btn-sm btn-outline-success" type="submit">Noņemt no "lasīt vēlāk"</button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="{{ url_for('save_article') }}">
+                                            <input type="hidden" name="article_id" value="{{ article.id }}">
+                                            <input type="hidden" name="tag" value="later">
+                                            <button class="btn btn-sm btn-success" type="submit">Lasīt vēlāk</button>
+                                        </form>
+                                    {% endif %}
+
+                                    {% if article.id in saved_important %}
+                                        <form method="post" action="{{ url_for('unsave_article') }}">
+                                            <input type="hidden" name="article_id" value="{{ article.id }}">
+                                            <input type="hidden" name="tag" value="important">
+                                            <button class="btn btn-sm btn-outline-warning" type="submit">Noņemt svarīgo</button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="{{ url_for('save_article') }}">
+                                            <input type="hidden" name="article_id" value="{{ article.id }}">
+                                            <input type="hidden" name="tag" value="important">
+                                            <button class="btn btn-sm btn-warning" type="submit">Atzīmēt kā svarīgu</button>
+                                        </form>
+                                    {% endif %}
+
+                                    <form method="post" action="{{ url_for('ignore_article') }}">
+                                        <input type="hidden" name="article_id" value="{{ article.id }}">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Ignorēt rakstu</button>
+                                    </form>
+
+                                    <form method="post" action="{{ url_for('ignore_source') }}">
+                                        <input type="hidden" name="source" value="{{ article.source }}">
+                                        <button class="btn btn-sm btn-outline-secondary" type="submit">Ignorēt avotu</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">Nav atrastu ziņu. Pamēģini citu filtru vai atjauno RSS.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

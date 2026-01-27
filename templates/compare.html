@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-3">Salīdzinājums tēmai: {{ topic }}</h2>
+{% if grouped %}
+    <div class="row g-3">
+        {% for source, items in grouped.items() %}
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">{{ source }}</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            {% for article in items[:5] %}
+                                <li class="mb-2">
+                                    <a href="{{ article.url }}" target="_blank">{{ article.title }}</a>
+                                    <div class="small text-muted">{{ article.published_at[:16].replace('T', ' ') }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">Nav datu salīdzināšanai.</div>
+{% endif %}
+{% endblock %}

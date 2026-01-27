@@ -1,18 +1,61 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Ziņu apkopotājs</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <h1>Ziņu apkopotājs</h1>
-    <ul>
-        {% for article in news %}
-            <li>
-                <a href="{{ article['link'] }}" target="_blank">{{ article['title'] }}</a>
-                ({{ article['source'] }})
-            </li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+body {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    background: #f4f6fb;
+    color: #1e1e2f;
+    min-height: 100vh;
+}
+
+.article-card {
+    border: none;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+}
+
+.info-card {
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #ffffff, #f2f4ff);
+}
+
+.theme-switcher {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 0.75rem;
+    border-radius: 999px;
+    z-index: 1000;
+}
+
+.theme-dark {
+    background: #101426;
+    color: #f3f5ff;
+}
+
+.theme-dark .card,
+.theme-dark .article-card {
+    background: #1b2238;
+    color: #f3f5ff;
+}
+
+.theme-dark .navbar {
+    background: #151b2f !important;
+}
+
+.theme-rave {
+    background: radial-gradient(circle at top, #270b49, #0c0424);
+    color: #f8f1ff;
+}
+
+.theme-rave .article-card,
+.theme-rave .card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f8f1ff;
+}
+
+.theme-rave .navbar {
+    background: linear-gradient(90deg, #ff6fd8, #6a5bff) !important;
+}
