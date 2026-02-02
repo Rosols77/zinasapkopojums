@@ -59,6 +59,75 @@ Projekta gala rezultāts tiek piegādāts kā:
 Nepieciešamības gadījumā projekta darbība var tikt demonstrēta ar prezentāciju vai tiešsaistes demonstrāciju.
 
 ---
+## Specifikācija
+
+**1. Mērķis**
+Izveidot mācību vajadzībām paredzētu tīmekļa lietotni, kas apkopo ziņas no vairākiem avotiem (RSS), strukturē tās pēc tēmām, ļauj meklēt, filtrēt un salīdzināt, kā dažādi mediji atspoguļo vienu tēmu.
+
+**2. Mērķa auditorija**
+Skolēni un studenti, kuri apgūst datu iegūšanu, tīmekļa lietotņu izstrādi un informācijas analīzi.
+
+**3. Funkcionālās prasības**
+**3.1. Ziņu iegūšana un glabāšana**
+- Sistēma periodiski ielādē ziņas no konfigurētiem RSS avotiem.
+- Ziņas tiek saglabātas datubāzē ar laukiem:
+  - virsraksts, kopsavilkums, avots, publicēšanas laiks, URL, tēma, atrašanās vieta (ja pieejama).
+- Dublikāti (tāds pats URL) netiek pievienoti atkārtoti.
+
+**3.2. Ziņu saraksts un filtrēšana**
+- Galvenajā skatā redzams jaunāko ziņu saraksts.
+- Meklēšana pēc atslēgvārdiem (virsraksts, kopsavilkums, tēma).
+- Filtri:
+  - laika periods (piem., 24h, 7 dienas, mēnesis),
+  - avots,
+  - kārtošana pēc publikācijas laika vai tēmas atspoguļojuma apjoma.
+
+**3.3. Tēmu salīdzinājums**
+- Lietotājs var izvēlēties tēmu un redzēt, kā dažādi avoti to atspoguļo.
+- Salīdzinājumā parādās vismaz 5 jaunākie virsraksti uz avotu.
+
+**3.4. Lietotāja darbības**
+- “Lasīt vēlāk” – pievienot rakstu saglabātajiem.
+- “Atzīmēt kā svarīgu” – pievienot svarīgo sarakstam.
+- “Ignorēt avotu” – paslēpt visus rakstus no konkrētā avota.
+- “Ignorēt rakstu” – paslēpt konkrēto rakstu.
+- Meklējumu vēsture un saglabātie meklējumi.
+- Vienkāršs konts bez paroles (mācību režīmā).
+
+**3.5. Lietotāja interfeiss**
+- Tīmekļa GUI ar responsīvu dizainu.
+- Tēmu pārslēdzējs (gaišais, tumšais, “rave”).
+
+**4. Nefunkcionālās prasības**
+- Lietojamība: lietotājam skaidra navigācija un ātra filtrēšana.
+- Datu drošība: netiek glabātas paroles vai sensitīvi dati.
+- Veiktspēja: RSS ielādes jāveic ar saprātīgu ātrumu (mācību vajadzībām pietiekami).
+
+**5. Tehniskā arhitektūra**
+- Backend: Python Flask.
+- Datu glabāšana: SQLite.
+- Datu iegūšana: RSS (feedparser).
+- Frontend: HTML + Jinja2 + Bootstrap 5 + pielāgots CSS/JS.
+
+**6. Galvenie moduļi**
+- `app.py`: maršruti, datu iegūšana, datubāzes loģika.
+- `templates/`: UI skati.
+- `static/`: stili un tēmu pārslēgšanas skripti.
+
+**7. Ierobežojumi un pieņēmumi**
+- Projekts ir mācību nolūkiem un netiek publiski izplatīts.
+- Ziņu avoti var atšķirties pēc datu struktūras, un ne visiem būs pilns metadatu komplekts.
+
+**8. Nākotnes uzlabojumi (pēc izvēles, cik atļaus laiks)**
+- Automātiska kopsavilkumu ģenerēšana.
+- Valodu tulkošana.
+- Lietotāju brīdinājumi par saglabātām tēmām.
+- Papildu avoti un valstu sabiedriskie mediji.
+- Tēmu klāsta paplašināšana.
+- Dizaina uzlabošana.
+
+
+---
 
 ## Literatūra un informācijas avoti
 - Edgara, Riharda un Bruno zoles mājaslapa (skat. iepriekšējo gadu projektus)
