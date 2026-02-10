@@ -11,9 +11,12 @@
                     <div class="card-body">
                         <ul class="list-unstyled">
                             {% for article in items[:5] %}
-                                <li class="mb-2">
-                                    <a href="{{ url_for('open_article', article_id=article.id) }}" target="_blank">{{ article.title }}</a>
-                                    <div class="small text-muted">{{ article.published_at[:16].replace('T', ' ') }}</div>
+                                <li class="mb-3 d-flex gap-2">
+                                    <img class="compare-thumb" src="{{ article.image_url }}" alt="Ziņas attēls" loading="lazy">
+                                    <div>
+                                        <a href="{{ url_for('open_article', article_id=article.id) }}" target="_blank">{{ article.title }}</a>
+                                        <div class="small text-muted">{{ article.published_at[:16].replace('T', ' ') }}</div>
+                                    </div>
                                 </li>
                             {% endfor %}
                         </ul>

@@ -3,12 +3,33 @@ body {
     background: #f4f6fb;
     color: #1e1e2f;
     min-height: 100vh;
+    transition: background 0.5s ease, color 0.5s ease;
 }
 
 .article-card {
     border: none;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     border-radius: 12px;
+}
+
+.article-media-wrap {
+    min-width: 220px;
+    max-width: 280px;
+}
+
+.article-image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.compare-thumb {
+    width: 80px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
 .info-card {
@@ -19,14 +40,21 @@ body {
 
 .theme-switcher {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    display: flex;
-    gap: 0.5rem;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 0.75rem;
-    border-radius: 999px;
-    z-index: 1000;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1100;
+}
+
+.theme-menu {
+    min-width: 220px;
+}
+
+.vacation-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
 }
 
 .theme-dark {
@@ -44,18 +72,127 @@ body {
     background: #151b2f !important;
 }
 
+/* Barbie mode */
+.theme-barbie {
+    background: linear-gradient(180deg, #ffe1f3, #ffd0ef);
+    color: #7b155a;
+}
+
+.theme-barbie .navbar {
+    background: linear-gradient(90deg, #ff4fa3, #ff8cc6) !important;
+}
+
+.theme-barbie .card,
+.theme-barbie .article-card {
+    background: #fff5fb;
+    border: 2px solid #ff88c8;
+    box-shadow: 0 10px 24px rgba(255, 79, 163, 0.22);
+}
+
+.theme-barbie .btn-primary,
+.theme-barbie .badge.bg-primary {
+    background: #ff4fa3 !important;
+    border-color: #ff4fa3 !important;
+}
+
+/* Rave mode */
+@keyframes raveBg {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes raveText {
+    0%, 100% { font-size: 100%; }
+    50% { font-size: 118%; }
+}
+
+@keyframes spinCrazy {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.05); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
 .theme-rave {
     background: radial-gradient(circle at top, #270b49, #0c0424);
     color: #f8f1ff;
+    animation: raveBg 3s linear infinite;
+}
+
+.theme-rave * {
+    animation: raveText 1.2s ease-in-out infinite;
 }
 
 .theme-rave .article-card,
 .theme-rave .card {
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     color: #f8f1ff;
+}
+
+.theme-rave .article-image,
+.theme-rave .compare-thumb {
+    border-radius: 50%;
+    animation: spinCrazy 2.5s linear infinite;
 }
 
 .theme-rave .navbar {
     background: linear-gradient(90deg, #ff6fd8, #6a5bff) !important;
+}
+
+/* Vacation mode */
+.theme-vacation {
+    color: #063c5f;
+}
+
+.theme-vacation .vacation-overlay {
+    display: block;
+    z-index: -1;
+    background:
+        linear-gradient(180deg, rgba(120, 210, 255, 0.6), rgba(29, 140, 203, 0.8)),
+        repeating-linear-gradient(
+            -10deg,
+            rgba(255, 255, 255, 0.25),
+            rgba(255, 255, 255, 0.25) 2px,
+            rgba(0, 0, 0, 0) 2px,
+            rgba(0, 0, 0, 0) 12px
+        );
+}
+
+.theme-vacation .navbar {
+    background: linear-gradient(90deg, #00a6d6, #1f6dbc) !important;
+}
+
+.theme-vacation .card,
+.theme-vacation .article-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 90, 140, 0.2);
+}
+
+/* Shakespeare mode */
+.theme-shakespeare {
+    background: radial-gradient(circle at top, #30200f, #120b05);
+    color: #f2dfb3;
+    font-family: "Garamond", "Times New Roman", serif;
+}
+
+.theme-shakespeare .navbar {
+    background: linear-gradient(90deg, #5c3b1e, #8d5f33) !important;
+}
+
+.theme-shakespeare .card,
+.theme-shakespeare .article-card {
+    background: linear-gradient(145deg, #f5e6c7, #e6d3ab);
+    color: #3f2a15;
+    border: 1px solid #b79963;
+    box-shadow: inset 0 0 20px rgba(120, 80, 30, 0.18), 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
+.theme-shakespeare .card-title::before {
+    content: "✒ ";
+}
+
+.theme-shakespeare main::before {
+    content: "🕯 🕯";
+    display: block;
+    margin-bottom: 8px;
 }

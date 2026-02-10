@@ -6,6 +6,7 @@ import json
 import os
 import secrets
 import sqlite3
+from urllib.parse import quote
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -235,6 +236,9 @@ def init_db() -> None:
             """
         )
         migrate_legacy_users_table(conn)
+        article_columns = {row["name"] for row in conn.execute("PRAGMA table_info(articles)").fetchall()}
+        if article_columns and "image_url" not in article_columns:
+            conn.execute("ALTER TABLE articles ADD COLUMN image_url TEXT")
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS articles (
@@ -245,7 +249,8 @@ def init_db() -> None:
                 published_at TEXT NOT NULL,
                 url TEXT UNIQUE NOT NULL,
                 topic TEXT,
-                location TEXT
+                location TEXT,
+                image_url TEXT
             )
             """
         )
@@ -351,6 +356,33 @@ def detect_topic(title: str, summary: str) -> str:
     return "Cits"
 
 
+def fallback_image_url(source: str, title: str) -> str:
+    seed = quote(f"{source}-{title}"[:120])
+    return f"https://picsum.photos/seed/{seed}/640/360"
+
+
+def extract_image_url(entry: Any, source: str, title: str) -> str:
+    media_content = entry.get("media_content") or []
+    if media_content and isinstance(media_content, list):
+        first = media_content[0]
+        if isinstance(first, dict) and first.get("url"):
+            return str(first["url"])
+
+    media_thumbnail = entry.get("media_thumbnail") or []
+    if media_thumbnail and isinstance(media_thumbnail, list):
+        first = media_thumbnail[0]
+        if isinstance(first, dict) and first.get("url"):
+            return str(first["url"])
+
+    enclosure = entry.get("enclosures") or []
+    if enclosure and isinstance(enclosure, list):
+        first = enclosure[0]
+        if isinstance(first, dict) and first.get("href"):
+            return str(first["href"])
+
+    return fallback_image_url(source, title)
+
+
 def parse_published(entry: Any) -> datetime:
     published = entry.get("published_parsed")
     if published:
@@ -372,13 +404,14 @@ def upsert_articles() -> int:
                 published_at = parse_published(entry).isoformat()
                 topic = detect_topic(title, summary)
                 location = entry.get("dc_coverage") or entry.get("location")
+                image_url = extract_image_url(entry, source, title)
                 try:
                     conn.execute(
                         """
-                        INSERT INTO articles (title, summary, source, published_at, url, topic, location)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO articles (title, summary, source, published_at, url, topic, location, image_url)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (title, summary, source, published_at, url, topic, location),
+                        (title, summary, source, published_at, url, topic, location, image_url),
                     )
                     inserted += 1
                 except sqlite3.IntegrityError:
@@ -449,7 +482,7 @@ def fetch_articles(
     with get_db() as conn:
         return conn.execute(
             f"""
-            SELECT id, title, summary, source, published_at, url, topic, location
+            SELECT id, title, summary, source, published_at, url, topic, location, image_url
             FROM articles
             {where_clause}
             ORDER BY published_at DESC
@@ -502,7 +535,7 @@ def get_saved_articles(user_id: int, tag: str) -> List[sqlite3.Row]:
     with get_db() as conn:
         rows = conn.execute(
             """
-            SELECT a.id, a.title, a.summary, a.source, a.published_at, a.url, a.topic, a.location
+            SELECT a.id, a.title, a.summary, a.source, a.published_at, a.url, a.topic, a.location, a.image_url
             FROM articles a
             JOIN saved_articles s ON s.article_id = a.id
             WHERE s.user_id = ? AND s.tag = ?
@@ -517,7 +550,7 @@ def get_recently_viewed(user_id: int, limit: int = 30) -> List[sqlite3.Row]:
     with get_db() as conn:
         rows = conn.execute(
             """
-            SELECT a.id, a.title, a.summary, a.source, a.published_at, a.url, a.topic, a.location, v.viewed_at
+            SELECT a.id, a.title, a.summary, a.source, a.published_at, a.url, a.topic, a.location, a.image_url, v.viewed_at
             FROM viewed_articles v
             JOIN articles a ON a.id = v.article_id
             WHERE v.user_id = ?
@@ -557,6 +590,7 @@ def index() -> str:
         return redirect(url_for("login"))
 
     user_id = current_user_id()
+    upsert_articles()
     query = request.args.get("q", "").strip()
     days_raw = request.args.get("days")
     source = request.args.get("source")

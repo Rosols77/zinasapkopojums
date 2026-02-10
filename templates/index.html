@@ -71,8 +71,11 @@
                 {% for article in articles %}
                     <div class="card article-card">
                         <div class="card-body">
-                            <div class="d-flex flex-column flex-lg-row justify-content-between gap-2">
-                                <div>
+                            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                                <div class="article-media-wrap">
+                                    <img class="article-image" src="{{ article.image_url }}" alt="Ziņas attēls" loading="lazy">
+                                </div>
+                                <div class="flex-grow-1">
                                     <h5 class="card-title">{{ article.title }}</h5>
                                     <p class="card-text text-muted mb-1">
                                         {{ article.source }} • {{ article.published_at[:16].replace('T', ' ') }}
