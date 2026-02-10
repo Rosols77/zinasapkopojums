@@ -185,6 +185,43 @@ def get_db() -> sqlite3.Connection:
     return conn
 
 
+
+
+def migrate_legacy_users_table(conn: sqlite3.Connection) -> None:
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+    required = {"id", "email", "display_name", "created_at"}
+    if required.issubset(columns):
+        return
+
+    now = datetime.now(timezone.utc).isoformat()
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            display_name TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+
+    if "name" in columns:
+        legacy_rows = conn.execute("SELECT id, name FROM users ORDER BY id").fetchall()
+        for row in legacy_rows:
+            legacy_id = int(row["id"])
+            display_name = (row["name"] or f"legacy_{legacy_id}").strip()
+            email = f"legacy_{legacy_id}@local.invalid"
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO users_new (id, email, display_name, created_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (legacy_id, email, display_name, now),
+            )
+
+    conn.execute("DROP TABLE users")
+    conn.execute("ALTER TABLE users_new RENAME TO users")
+
 def init_db() -> None:
     with get_db() as conn:
         conn.execute(
@@ -197,6 +234,7 @@ def init_db() -> None:
             )
             """
         )
+        migrate_legacy_users_table(conn)
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS articles (
