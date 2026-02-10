@@ -10,7 +10,7 @@
                     <h5 class="card-title">{{ article.title }}</h5>
                     <p class="card-text text-muted">{{ article.source }} • {{ article.published_at[:16].replace('T', ' ') }}</p>
                     <p class="card-text">{{ article.summary|safe }}</p>
-                    <a class="btn btn-sm btn-outline-primary" href="{{ article.url }}" target="_blank">Lasīt pilnu</a>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('open_article', article_id=article.id) }}" target="_blank">Lasīt pilnu</a>
                 </div>
             </div>
         {% endfor %}
@@ -19,3 +19,4 @@
     <div class="alert alert-secondary">Saraksts ir tukšs.</div>
 {% endif %}
 {% endblock %}
+

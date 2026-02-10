@@ -12,7 +12,7 @@
                         <ul class="list-unstyled">
                             {% for article in items[:5] %}
                                 <li class="mb-2">
-                                    <a href="{{ article.url }}" target="_blank">{{ article.title }}</a>
+                                    <a href="{{ url_for('open_article', article_id=article.id) }}" target="_blank">{{ article.title }}</a>
                                     <div class="small text-muted">{{ article.published_at[:16].replace('T', ' ') }}</div>
                                 </li>
                             {% endfor %}

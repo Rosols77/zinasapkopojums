@@ -5,11 +5,16 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title mb-3">Izveidot kontu</h4>
+                <h4 class="card-title mb-3">Ielogoties</h4>
                 <form method="post">
-                    <label class="form-label">Lietotājvārds</label>
-                    <input type="text" name="name" class="form-control mb-3" placeholder="piem., Beatrise" required>
-                    <button class="btn btn-primary" type="submit">Saglabāt</button>
+                    <label class="form-label">E-pasts</label>
+                    <input type="email" name="email" class="form-control mb-3" required>
+
+                    <label class="form-label">Parole</label>
+                    <input type="password" name="password" class="form-control mb-3" required>
+
+                    <button class="btn btn-primary" type="submit">Ienākt</button>
+                    <a class="btn btn-link" href="{{ url_for('register') }}">Nav konta? Reģistrēties</a>
                 </form>
             </div>
         </div>

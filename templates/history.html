@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="mb-3">Meklējumu vēsture</h2>
+<h2 class="mb-3">Meklējumu un skatījumu vēsture</h2>
 <div class="row g-3">
-    <div class="col-lg-6">
+    <div class="col-lg-4">
         <div class="card">
             <div class="card-header">Pēdējie meklējumi</div>
             <div class="card-body">
@@ -22,7 +22,8 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-6">
+
+    <div class="col-lg-4">
         <div class="card">
             <div class="card-header">Saglabātie meklējumi</div>
             <div class="card-body">
@@ -40,6 +41,26 @@
                     </ul>
                 {% else %}
                     <p class="text-muted mb-0">Nav saglabātu meklējumu.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">Skatītie raksti</div>
+            <div class="card-body">
+                {% if viewed %}
+                    <ul class="list-unstyled mb-0">
+                        {% for item in viewed %}
+                            <li class="mb-2">
+                                <a href="{{ url_for('open_article', article_id=item.id) }}" target="_blank">{{ item.title }}</a>
+                                <div class="small text-muted">{{ item.viewed_at[:16].replace('T', ' ') }}</div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Nav skatīto rakstu.</p>
                 {% endif %}
             </div>
         </div>
