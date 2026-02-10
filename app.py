@@ -6,7 +6,6 @@ import json
 import os
 import secrets
 import sqlite3
-from urllib.parse import quote
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -190,7 +189,7 @@ def get_db() -> sqlite3.Connection:
 
 def migrate_legacy_users_table(conn: sqlite3.Connection) -> None:
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
-    required = {"id", "email", "display_name", "created_at"}
+    required = {"id", "email", "display_name", "created_at", "preferred_theme"}
     if required.issubset(columns):
         return
 
@@ -201,7 +200,8 @@ def migrate_legacy_users_table(conn: sqlite3.Connection) -> None:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             display_name TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            preferred_theme TEXT NOT NULL DEFAULT 'light'
         )
         """
     )
@@ -214,10 +214,10 @@ def migrate_legacy_users_table(conn: sqlite3.Connection) -> None:
             email = f"legacy_{legacy_id}@local.invalid"
             conn.execute(
                 """
-                INSERT OR IGNORE INTO users_new (id, email, display_name, created_at)
-                VALUES (?, ?, ?, ?)
+                INSERT OR IGNORE INTO users_new (id, email, display_name, created_at, preferred_theme)
+                VALUES (?, ?, ?, ?, ?)
                 """,
-                (legacy_id, email, display_name, now),
+                (legacy_id, email, display_name, now, "light"),
             )
 
     conn.execute("DROP TABLE users")
@@ -231,11 +231,15 @@ def init_db() -> None:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT UNIQUE NOT NULL,
                 display_name TEXT NOT NULL,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                preferred_theme TEXT NOT NULL DEFAULT 'light'
             )
             """
         )
         migrate_legacy_users_table(conn)
+        user_columns = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+        if "preferred_theme" not in user_columns:
+            conn.execute("ALTER TABLE users ADD COLUMN preferred_theme TEXT NOT NULL DEFAULT 'light'")
         article_columns = {row["name"] for row in conn.execute("PRAGMA table_info(articles)").fetchall()}
         if article_columns and "image_url" not in article_columns:
             conn.execute("ALTER TABLE articles ADD COLUMN image_url TEXT")
@@ -317,13 +321,13 @@ def init_db() -> None:
 
 def get_or_create_user(email: str, display_name: str) -> int:
     with get_db() as conn:
-        existing = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+        existing = conn.execute("SELECT id, preferred_theme FROM users WHERE email = ?", (email,)).fetchone()
         if existing:
             conn.execute("UPDATE users SET display_name = ? WHERE id = ?", (display_name, existing["id"]))
             return int(existing["id"])
         cursor = conn.execute(
-            "INSERT INTO users (email, display_name, created_at) VALUES (?, ?, ?)",
-            (email, display_name, datetime.now(timezone.utc).isoformat()),
+            "INSERT INTO users (email, display_name, created_at, preferred_theme) VALUES (?, ?, ?, ?)",
+            (email, display_name, datetime.now(timezone.utc).isoformat(), "light"),
         )
         return int(cursor.lastrowid)
 
@@ -356,12 +360,7 @@ def detect_topic(title: str, summary: str) -> str:
     return "Cits"
 
 
-def fallback_image_url(source: str, title: str) -> str:
-    seed = quote(f"{source}-{title}"[:120])
-    return f"https://picsum.photos/seed/{seed}/640/360"
-
-
-def extract_image_url(entry: Any, source: str, title: str) -> str:
+def extract_image_url(entry: Any) -> Optional[str]:
     media_content = entry.get("media_content") or []
     if media_content and isinstance(media_content, list):
         first = media_content[0]
@@ -380,7 +379,7 @@ def extract_image_url(entry: Any, source: str, title: str) -> str:
         if isinstance(first, dict) and first.get("href"):
             return str(first["href"])
 
-    return fallback_image_url(source, title)
+    return None
 
 
 def parse_published(entry: Any) -> datetime:
@@ -404,7 +403,7 @@ def upsert_articles() -> int:
                 published_at = parse_published(entry).isoformat()
                 topic = detect_topic(title, summary)
                 location = entry.get("dc_coverage") or entry.get("location")
-                image_url = extract_image_url(entry, source, title)
+                image_url = extract_image_url(entry)
                 try:
                     conn.execute(
                         """
@@ -575,12 +574,56 @@ def sort_by_topic_coverage(articles: List[sqlite3.Row]) -> List[sqlite3.Row]:
     return sorted(articles, key=lambda row: counts.get(row["topic"] or "Cits", 0), reverse=True)
 
 
+def get_user_profile_data(user_id: int) -> sqlite3.Row:
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id, email, display_name, created_at, preferred_theme FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+    if row is None:
+        raise PermissionError("Lietotājs nav atrasts")
+    return row
+
+
+def set_user_theme(user_id: int, theme: str) -> None:
+    with get_db() as conn:
+        conn.execute("UPDATE users SET preferred_theme = ? WHERE id = ?", (theme, user_id))
+
+
+def get_user_stats(user_id: int) -> Dict[str, int]:
+    with get_db() as conn:
+        stats = {
+            "saved_later": conn.execute(
+                "SELECT COUNT(*) AS c FROM saved_articles WHERE user_id = ? AND tag = 'later'",
+                (user_id,),
+            ).fetchone()["c"],
+            "saved_important": conn.execute(
+                "SELECT COUNT(*) AS c FROM saved_articles WHERE user_id = ? AND tag = 'important'",
+                (user_id,),
+            ).fetchone()["c"],
+            "ignored_articles": conn.execute(
+                "SELECT COUNT(*) AS c FROM ignored_articles WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()["c"],
+            "ignored_sources": conn.execute(
+                "SELECT COUNT(*) AS c FROM ignored_sources WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()["c"],
+            "viewed_articles": conn.execute(
+                "SELECT COUNT(*) AS c FROM viewed_articles WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()["c"],
+        }
+    return {k: int(v) for k, v in stats.items()}
+
+
 @app.context_processor
 def inject_user() -> Dict[str, Any]:
     return {
         "logged_in": "user_email" in session,
         "display_name": session.get("display_name"),
         "user_email": session.get("user_email"),
+        "preferred_theme": session.get("preferred_theme", "light"),
     }
 
 
@@ -707,7 +750,8 @@ def register() -> str:
         if created:
             session["user_email"] = email
             session["display_name"] = display_name
-            get_or_create_user(email, display_name)
+            user_id = get_or_create_user(email, display_name)
+            session["preferred_theme"] = get_user_profile_data(user_id)["preferred_theme"]
             return redirect(url_for("index"))
 
     return render_template("register.html")
@@ -722,10 +766,38 @@ def login() -> str:
         if user:
             session["user_email"] = user["email"]
             session["display_name"] = user["display_name"]
-            get_or_create_user(user["email"], user["display_name"])
+            user_id = get_or_create_user(user["email"], user["display_name"])
+            session["preferred_theme"] = get_user_profile_data(user_id)["preferred_theme"]
             return redirect(url_for("index"))
         flash("Nepareizs e-pasts vai parole.", "danger")
     return render_template("login.html")
+
+
+@app.route("/profile", methods=["GET", "POST"])
+def profile() -> str:
+    user_id = current_user_id()
+    allowed_themes = {"light", "dark", "barbie", "rave", "vacation", "shakespeare"}
+
+    if request.method == "POST":
+        display_name = request.form.get("display_name", "").strip()
+        selected_theme = request.form.get("preferred_theme", "light")
+
+        if selected_theme not in allowed_themes:
+            selected_theme = "light"
+
+        if display_name:
+            with get_db() as conn:
+                conn.execute("UPDATE users SET display_name = ? WHERE id = ?", (display_name, user_id))
+            session["display_name"] = display_name
+
+        set_user_theme(user_id, selected_theme)
+        session["preferred_theme"] = selected_theme
+        flash("Profils atjaunināts.", "success")
+        return redirect(url_for("profile"))
+
+    profile_row = get_user_profile_data(user_id)
+    stats = get_user_stats(user_id)
+    return render_template("profile.html", profile=profile_row, stats=stats)
 
 
 @app.route("/logout", methods=["POST"])

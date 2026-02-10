@@ -1,40 +1,58 @@
 const THEME_KEY = "zinu-theme";
 const body = document.body;
 const audio = document.getElementById("vacation-audio");
+const profileSelect = document.querySelector(".profile-theme-select");
+const globalThemeSelect = document.querySelector(".global-theme-select");
 
-const THEMES = [
-    "light",
-    "dark",
-    "barbie",
-    "rave",
-    "vacation",
-    "shakespeare",
-];
+const THEMES = ["light", "dark", "barbie", "rave", "vacation", "shakespeare"];
+
+async function persistTheme(theme) {
+    try {
+        await fetch("/set-theme", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ preferred_theme: theme }),
+        });
+    } catch (error) {
+        // Ja nav sasniedzams endpoint, theme lokāli tāpat paliek ieslēgts.
+    }
+}
 
 function applyTheme(theme) {
+    const safeTheme = THEMES.includes(theme) ? theme : "light";
     THEMES.forEach((name) => body.classList.remove(`theme-${name}`));
-    body.classList.add(`theme-${theme}`);
+    body.classList.add(`theme-${safeTheme}`);
+
+    if (profileSelect) profileSelect.value = safeTheme;
+    if (globalThemeSelect) globalThemeSelect.value = safeTheme;
 
     if (audio) {
-        if (theme === "vacation") {
+        if (safeTheme === "vacation") {
             audio.volume = 0.35;
             audio.play().catch(() => {
-                // Browser var bloķēt autoplay bez lietotāja klikšķa.
+                // Browser var bloķēt autoplay.
             });
         } else {
             audio.pause();
             audio.currentTime = 0;
         }
     }
+
+    localStorage.setItem(THEME_KEY, safeTheme);
+    persistTheme(safeTheme);
 }
 
-const savedTheme = localStorage.getItem(THEME_KEY) || "light";
-applyTheme(savedTheme);
+const preferredTheme = body.dataset.preferredTheme || "light";
+const localTheme = localStorage.getItem(THEME_KEY);
+const initialTheme = THEMES.includes(preferredTheme)
+    ? preferredTheme
+    : (THEMES.includes(localTheme || "") ? localTheme : "light");
 
-document.querySelectorAll("[data-theme]").forEach((button) => {
-    button.addEventListener("click", () => {
-        const theme = button.dataset.theme || "light";
-        localStorage.setItem(THEME_KEY, theme);
-        applyTheme(theme);
-    });
-});
+applyTheme(initialTheme);
+
+if (profileSelect) {
+    profileSelect.addEventListener("change", () => applyTheme(profileSelect.value));
+}
+if (globalThemeSelect) {
+    globalThemeSelect.addEventListener("change", () => applyTheme(globalThemeSelect.value));
+}

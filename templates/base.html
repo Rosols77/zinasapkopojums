@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body class="theme-light">
+<body class="theme-{{ preferred_theme|default('light') }}" data-preferred-theme="{{ preferred_theme|default('light') }}">
 <div class="vacation-overlay" aria-hidden="true"></div>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
@@ -24,7 +24,15 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('history') }}">Vēsture</a></li>
                 </ul>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="text-white small">{{ display_name }} ({{ user_email }})</span>
+                    <a class="btn btn-outline-light btn-sm" href="{{ url_for('profile') }}">{{ display_name }} ({{ user_email }})</a>
+                    <select class="form-select form-select-sm global-theme-select" style="width: 170px;">
+                        <option value="light" {% if preferred_theme == 'light' %}selected{% endif %}>Gaišais</option>
+                        <option value="dark" {% if preferred_theme == 'dark' %}selected{% endif %}>Tumšais</option>
+                        <option value="barbie" {% if preferred_theme == 'barbie' %}selected{% endif %}>Barbie</option>
+                        <option value="rave" {% if preferred_theme == 'rave' %}selected{% endif %}>Rave</option>
+                        <option value="vacation" {% if preferred_theme == 'vacation' %}selected{% endif %}>Vacation</option>
+                        <option value="shakespeare" {% if preferred_theme == 'shakespeare' %}selected{% endif %}>Shakespeare</option>
+                    </select>
                     <form method="post" action="{{ url_for('refresh') }}">
                         <button class="btn btn-light btn-sm" type="submit">Atjaunot ziņas</button>
                     </form>
@@ -52,20 +60,6 @@
     {% endwith %}
     {% block content %}{% endblock %}
 </main>
-
-<div class="theme-switcher dropdown dropup">
-    <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-        Opcijas
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end p-2 theme-menu">
-        <li><button class="dropdown-item" data-theme="light">Standarta režīms</button></li>
-        <li><button class="dropdown-item" data-theme="dark">Tumšais režīms</button></li>
-        <li><button class="dropdown-item" data-theme="barbie">Barbie mode</button></li>
-        <li><button class="dropdown-item" data-theme="rave">Rave mode</button></li>
-        <li><button class="dropdown-item" data-theme="vacation">Vacation mode</button></li>
-        <li><button class="dropdown-item" data-theme="shakespeare">Shakespeare mode</button></li>
-    </ul>
-</div>
 
 <audio id="vacation-audio" loop preload="none">
     <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_6db6a5de68.mp3?filename=sea-waves-ambient-110173.mp3" type="audio/mpeg">

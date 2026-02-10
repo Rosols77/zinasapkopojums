@@ -54,7 +54,7 @@
                     <ul class="list-unstyled mb-0">
                         {% for item in viewed %}
                             <li class="mb-2 d-flex gap-2">
-                                <img class="compare-thumb" src="{{ item.image_url }}" alt="Ziņas attēls" loading="lazy">
+                                {% if item.image_url %}<img class="news-image" src="{{ item.image_url }}" alt="Ziņas attēls" loading="lazy">{% endif %}
                                 <div>
                                     <a href="{{ url_for('open_article', article_id=item.id) }}" target="_blank">{{ item.title }}</a>
                                     <div class="small text-muted">{{ item.viewed_at[:16].replace('T', ' ') }}</div>

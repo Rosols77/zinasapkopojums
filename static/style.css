@@ -3,7 +3,7 @@ body {
     background: #f4f6fb;
     color: #1e1e2f;
     min-height: 100vh;
-    transition: background 0.5s ease, color 0.5s ease;
+    transition: background 0.25s linear, color 0.25s linear;
 }
 
 .article-card {
@@ -13,40 +13,28 @@ body {
 }
 
 .article-media-wrap {
-    min-width: 220px;
-    max-width: 280px;
+    width: 280px;
+    min-width: 280px;
 }
 
-.article-image {
-    width: 100%;
-    aspect-ratio: 16 / 9;
+.news-image {
+    width: 240px !important;
+    min-width: 240px !important;
+    max-width: 240px !important;
+    height: 140px !important;
+    min-height: 140px !important;
+    max-height: 140px !important;
     object-fit: cover;
-    border-radius: 12px;
-    border: 2px solid rgba(0, 0, 0, 0.08);
-}
-
-.compare-thumb {
-    width: 80px;
-    height: 56px;
-    object-fit: cover;
-    border-radius: 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    flex-shrink: 0;
+    display: block;
 }
 
 .info-card {
     border-radius: 12px;
     border: none;
     background: linear-gradient(135deg, #ffffff, #f2f4ff);
-}
-
-.theme-switcher {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1100;
-}
-
-.theme-menu {
-    min-width: 220px;
 }
 
 .vacation-overlay {
@@ -72,7 +60,11 @@ body {
     background: #151b2f !important;
 }
 
-/* Barbie mode */
+.theme-dark .list-group-item {
+    background: #1b2238;
+    color: #f3f5ff;
+}
+
 .theme-barbie {
     background: linear-gradient(180deg, #ffe1f3, #ffd0ef);
     color: #7b155a;
@@ -95,51 +87,49 @@ body {
     border-color: #ff4fa3 !important;
 }
 
-/* Rave mode */
 @keyframes raveBg {
     0% { filter: hue-rotate(0deg); }
     100% { filter: hue-rotate(360deg); }
 }
 
 @keyframes raveText {
-    0%, 100% { font-size: 100%; }
-    50% { font-size: 118%; }
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
 }
 
 @keyframes spinCrazy {
     0% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.05); }
+    50% { transform: rotate(180deg) scale(1.08); }
     100% { transform: rotate(360deg) scale(1); }
 }
 
 .theme-rave {
     background: radial-gradient(circle at top, #270b49, #0c0424);
     color: #f8f1ff;
-    animation: raveBg 3s linear infinite;
+    animation: raveBg 0.6s linear infinite;
 }
 
 .theme-rave * {
-    animation: raveText 1.2s ease-in-out infinite;
+    animation: raveText 0.6s linear infinite;
 }
 
 .theme-rave .article-card,
-.theme-rave .card {
+.theme-rave .card,
+.theme-rave .list-group-item {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.25);
     color: #f8f1ff;
 }
 
-.theme-rave .article-image,
-.theme-rave .compare-thumb {
+.theme-rave .news-image {
     border-radius: 50%;
-    animation: spinCrazy 2.5s linear infinite;
+    animation: spinCrazy 0.8s linear infinite;
 }
 
 .theme-rave .navbar {
     background: linear-gradient(90deg, #ff6fd8, #6a5bff) !important;
 }
 
-/* Vacation mode */
 .theme-vacation {
     color: #063c5f;
 }
@@ -163,12 +153,12 @@ body {
 }
 
 .theme-vacation .card,
-.theme-vacation .article-card {
+.theme-vacation .article-card,
+.theme-vacation .list-group-item {
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(0, 90, 140, 0.2);
 }
 
-/* Shakespeare mode */
 .theme-shakespeare {
     background: radial-gradient(circle at top, #30200f, #120b05);
     color: #f2dfb3;
@@ -180,7 +170,8 @@ body {
 }
 
 .theme-shakespeare .card,
-.theme-shakespeare .article-card {
+.theme-shakespeare .article-card,
+.theme-shakespeare .list-group-item {
     background: linear-gradient(145deg, #f5e6c7, #e6d3ab);
     color: #3f2a15;
     border: 1px solid #b79963;

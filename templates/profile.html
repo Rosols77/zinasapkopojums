@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card article-card">
+            <div class="card-body">
+                <h4 class="mb-3">Profils</h4>
+                <form method="post" class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Lietotājvārds</label>
+                        <input type="text" name="display_name" class="form-control" value="{{ profile.display_name }}" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">E-pasts</label>
+                        <input type="email" class="form-control" value="{{ profile.email }}" disabled>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Stils</label>
+                        <select name="preferred_theme" class="form-select profile-theme-select">
+                            <option value="light" {% if profile.preferred_theme == 'light' %}selected{% endif %}>Gaišais</option>
+                            <option value="dark" {% if profile.preferred_theme == 'dark' %}selected{% endif %}>Tumšais</option>
+                            <option value="barbie" {% if profile.preferred_theme == 'barbie' %}selected{% endif %}>Barbie</option>
+                            <option value="rave" {% if profile.preferred_theme == 'rave' %}selected{% endif %}>Rave</option>
+                            <option value="vacation" {% if profile.preferred_theme == 'vacation' %}selected{% endif %}>Vacation</option>
+                            <option value="shakespeare" {% if profile.preferred_theme == 'shakespeare' %}selected{% endif %}>Shakespeare</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-primary" type="submit">Saglabāt profilu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card article-card">
+            <div class="card-body">
+                <h5 class="mb-3">Aktivitāte</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><span>Skatītie raksti</span><strong>{{ stats.viewed_articles }}</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>Lasīt vēlāk</span><strong>{{ stats.saved_later }}</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>Svarīgie</span><strong>{{ stats.saved_important }}</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>Ignorētie raksti</span><strong>{{ stats.ignored_articles }}</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>Ignorētie avoti</span><strong>{{ stats.ignored_sources }}</strong></li>
+                </ul>
+                <div class="mt-3 small text-muted">Konts izveidots: {{ profile.created_at[:16].replace('T', ' ') }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

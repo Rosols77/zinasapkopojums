@@ -7,9 +7,9 @@
         {% for article in articles %}
             <div class="card article-card">
                 <div class="card-body d-flex flex-column flex-lg-row gap-3">
-                    <div class="article-media-wrap">
-                        <img class="article-image" src="{{ article.image_url }}" alt="Ziņas attēls" loading="lazy">
-                    </div>
+                    {% if article.image_url %}<div class="article-media-wrap">
+                        <img class="news-image" src="{{ article.image_url }}" alt="Ziņas attēls" loading="lazy">
+                    </div>{% endif %}
                     <div>
                         <h5 class="card-title">{{ article.title }}</h5>
                         <p class="card-text text-muted">{{ article.source }} • {{ article.published_at[:16].replace('T', ' ') }}</p>

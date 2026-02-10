@@ -72,9 +72,9 @@
                     <div class="card article-card">
                         <div class="card-body">
                             <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
-                                <div class="article-media-wrap">
-                                    <img class="article-image" src="{{ article.image_url }}" alt="Ziņas attēls" loading="lazy">
-                                </div>
+                                {% if article.image_url %}<div class="article-media-wrap">
+                                    <img class="news-image" src="{{ article.image_url }}" alt="Ziņas attēls" loading="lazy">
+                                </div>{% endif %}
                                 <div class="flex-grow-1">
                                     <h5 class="card-title">{{ article.title }}</h5>
                                     <p class="card-text text-muted mb-1">
