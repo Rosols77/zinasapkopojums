@@ -132,6 +132,25 @@ Skolēni un studenti, kuri apgūst datu iegūšanu, tīmekļa lietotņu izstrād
 ![UML diagramma](Flowcharts-2.png)
 
 ---
+## Darba plāns:
+Attiecīgais darba plāns tika izveidots, atbilstoši tam, ko zinām pašlaik, darba plāns, iespējams varētu mainīties, atklājot neparedzemas ķibeles, kuru atrisināšana aizņem vairāk laiku. Izdomājot vēl veidus, kā projektu uzlabot.
 
+### Laika grafiks
+- 3. februāris - prezentēšana, sāk darbu pie kontu uzlabošanas.
+- 10. februāris - Turpina darbu pie kontu uzlabošanas.
+- 17. februāris - Darbs pie kontu uzlabošanas tiek pabeigts, pārliecinās, ka nav radušās neparedzētas ķibeles.
+- 24. februāris - Ķibeļu labošana, kas saistītas ar kontu.
+- 3. marts - Tiek uzsākts darbs pie avota/raksta saglabāšanas, avota/raksta ignorēšanas, lai tas darbotos, darbības saglabātos kontā.
+- 10. marts - Tiek pabeigts darbs pie avota/raksta saglabāšanas, avota/raksta ignorēšanas, lai tas darbotos, darbības saglabātos kontā.
+- 17. marts - Pārbauda, vai nav radušās ķibeles ar šīm opcijām, darot visu, ko varētu lietotājs izdarīt (gan pareizi, gan nepareizi).
+- 24. marts - Uzsāk darbu pie tēmu saraksta uzlabošanas (lielākas, plašākas kategorijas).
+- 31. marts - Darbs pie tēmu saraksta tiek pabeigts, tiek konstatētas kļūdas kuras ir radušās. Tās tiek novērstas.
+- 7. aprīlis - Tiek uzsākts darbs pie dizaina uzlabošanas, lai ne tikai būtu pārskatāmāks, bet arī ērtāka pielietojamība.
+- 14. aprīlis - Darbs pie dizaina tiek pabeigts, tiek pievienots disko režīms.
+- 21. aprīlis - Raksti tiek sadalīti pa dienām/laikiem.
+- 28. aprīlis - Pie rakstiem tiek pievienotas bildes.
+- 5. maijs - Sagatavošanās prezentēšanai.
+
+---
 ## Literatūra un informācijas avoti
 - Edgara, Riharda un Bruno zoles mājaslapa (skat. iepriekšējo gadu projektus)
