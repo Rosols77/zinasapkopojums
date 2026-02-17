@@ -129,7 +129,7 @@ Skolēni un studenti, kuri apgūst datu iegūšanu, tīmekļa lietotņu izstrād
 ---
 ## Sistēmas plūsmas UML diagramma
 
-![UML diagramma](Flowcharts.png)
+![UML diagramma](Flowcharts-2.png)
 
 ---
 
