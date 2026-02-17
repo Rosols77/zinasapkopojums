@@ -126,6 +126,10 @@ Skolēni un studenti, kuri apgūst datu iegūšanu, tīmekļa lietotņu izstrād
 - Tēmu klāsta paplašināšana.
 - Dizaina uzlabošana.
 
+---
+## Sistēmas plūsmas UML diagramma
+
+![UML diagramma](images/Flowcharts.png)
 
 ---
 
