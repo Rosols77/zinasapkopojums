@@ -1,0 +1,67 @@
+{
+  "generated_at": "2026-03-17T08:45:31.154439+00:00",
+  "total_events": 5,
+  "sources": {
+    "rss": 2,
+    "api": 2,
+    "manual": 1
+  },
+  "latency": {
+    "avg_ms": 660,
+    "min_ms": 400,
+    "max_ms": 900,
+    "slow_count": 0,
+    "slow_threshold_ms": 900
+  },
+  "status": {
+    "ok": 4,
+    "warning": 1
+  },
+  "events": [
+    {
+      "event_id": "evt-001",
+      "source": "rss",
+      "sent_at": "2026-03-17T08:45:16.154439+00:00",
+      "received_at": "2026-03-17T08:45:16.554439+00:00",
+      "payload_size": 512,
+      "status": "ok",
+      "latency_ms": 400
+    },
+    {
+      "event_id": "evt-002",
+      "source": "rss",
+      "sent_at": "2026-03-17T08:45:19.154439+00:00",
+      "received_at": "2026-03-17T08:45:20.054439+00:00",
+      "payload_size": 256,
+      "status": "ok",
+      "latency_ms": 900
+    },
+    {
+      "event_id": "evt-003",
+      "source": "api",
+      "sent_at": "2026-03-17T08:45:23.154439+00:00",
+      "received_at": "2026-03-17T08:45:23.954439+00:00",
+      "payload_size": 1024,
+      "status": "ok",
+      "latency_ms": 800
+    },
+    {
+      "event_id": "evt-004",
+      "source": "api",
+      "sent_at": "2026-03-17T08:45:26.154439+00:00",
+      "received_at": "2026-03-17T08:45:26.854439+00:00",
+      "payload_size": 768,
+      "status": "ok",
+      "latency_ms": 700
+    },
+    {
+      "event_id": "evt-005",
+      "source": "manual",
+      "sent_at": "2026-03-17T08:45:28.154439+00:00",
+      "received_at": "2026-03-17T08:45:28.654439+00:00",
+      "payload_size": 128,
+      "status": "warning",
+      "latency_ms": 500
+    }
+  ]
+}
