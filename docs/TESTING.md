@@ -1,70 +1,110 @@
-# Testēšanas vide
+# Testēšanas vide (datu plūsmas novērošana)
 
-Šajā projektā ir izveidota minimāla testēšanas vide ar Python standarta `unittest` (bez ārējām atkarībām).
+Šī vide ir paredzēta, lai testos redzētu:
+1. **no kurienes nāk informācija** (`source`),
+2. **cik ilgā laikā tā pienāk** (`latency_ms`),
+3. statusu un lēno notikumu statistiku,
+4. datu kvalitātes problēmas (`quality`),
+5. drošības testu rezultātus (`security`),
+6. detalizētu JSON atskaiti ar visiem notikumiem.
 
-## Ātra palaišana
+## 1) Palaišana
 
-No projekta saknes mapes:
+### Cross-platform (ieteicams)
+
+```bash
+python3 run_observability_demo.py
+```
+
+Windows PowerShell:
+
+```powershell
+py .\run_observability_demo.py
+```
+
+## 2) Kur redzēt rezultātu
+
+Pēc palaišanas tiek izveidots fails:
+
+- `artifacts/latest_report.json`
+
+Tajā ir:
+- `sources` (avotu sadalījums),
+- `latency` (vidējais/min/max un lēnie notikumi),
+- `per_source_latency` (statistika pa avotiem),
+- `quality` (kvalitātes indikatori),
+- `security` (drošības pārbaudes),
+- `status` sadalījums,
+- `events` ar katra ieraksta laikiem.
+
+## 3) Drošības testi (ja mēģina apiet un tikt klāt parolēm)
+
+Šajā vidē tiek veikti 5 aizsardzības testi:
+
+### A) Path traversal pārbaude
+- Sistēma mēģina atrisināt ceļu `../users_secure.key` no `artifacts` mapes.
+- Pareizs rezultāts: `security.path_traversal_blocked = true`.
+
+### B) Sensitīvu lauku meklēšana reportā
+- Tiek pārmeklēts reporta saturs uz atslēgvārdiem: `password`, `token`, `secret`, `api_key`, `private_key`.
+- Pareizs rezultāts: `security.sensitive_keys_found_count = 0`.
+
+### C) Brute-force lockout simulācija
+- Simulēti 5 neveiksmīgi mēģinājumi un 6. mēģinājums ar pareizu paroli lockout periodā.
+- Pareizs rezultāts:
+  - `security.bruteforce_simulation.lockout_triggered = true`
+  - `security.bruteforce_simulation.bypass_possible = false`
+
+### D) IP-based rate limiting simulācija
+- Simulēti 7 mēģinājumi no viena IP un 1 mēģinājums no cita IP.
+- Pareizs rezultāts:
+  - `security.ip_rate_limit_simulation.primary_blocked = true`
+  - `security.ip_rate_limit_simulation.secondary_allowed = true`
+
+### E) Cooldown recovery simulācija
+- Pēc lockout tiek pārbaudīts mēģinājums lockout laikā un pēc lockout beigām.
+- Pareizs rezultāts:
+  - `security.cooldown_recovery_simulation.during_lockout_allowed = false`
+  - `security.cooldown_recovery_simulation.after_cooldown_allowed = true`
+
+## 4) Ko papildus vari testēt (kas var noiet greizi)
+
+### A) Lēni ienākoši notikumi
+- Maini `slow_threshold_ms` parametrā `build_report(...)` un pārbaudi `latency.slow_count`.
+
+### B) Nepareizi laiki
+- Izveido notikumu, kur `received_at < sent_at`, un pārbaudi `quality.negative_latency_count`.
+
+### C) Nākotnes timestamp
+- Izveido notikumu ar `sent_at > now` un pārbaudi `quality.future_sent_count`.
+
+### D) Pārāk liels payload
+- Pievieno notikumu ar `payload_size > 900` un pārbaudi `quality.oversized_payload_count`.
+
+### E) Avotu salīdzināšana
+- Salīdzini `per_source_latency` starp `rss` un `api`, lai redzētu kurš avots piegādā lēnāk.
+
+### F) Sensitīvu atslēgu noplūde nested struktūrās
+- Pārbaudi, ka atslēgas kā `meta.credentials.password` tiek noķertas ar sensitive-key detectoru.
+
+## 5) Testu komandas
 
 ```bash
 make test-local
+make test-script
+make test-observability
+make test-all
 ```
 
-## Windows (PowerShell) instrukcija
+## 6) Testu saturs
 
-Ja izmanto Windows PowerShell, **nav jāpalaiž `bash`**.
+- `tests/test_smoke.py` — pamatpārbaude (`README.md` eksistence)
+- `tests/test_project_structure.py` — būtisko failu esamība
+- `tests/test_observability.py` — validē avotus, latentumu, quality, security, IP rate limit, cooldown recovery un sensitive-key scenārijus
 
-1. Atver PowerShell.
-2. Pārej uz projekta mapi:
-   ```powershell
-   cd C:\celš\uz\ZinuApkopotajs
-   ```
-3. Palaid testus:
-   ```powershell
-   py -m unittest discover -s tests -p "test_*.py" -v
-   ```
-   (alternatīva: `python -m unittest discover -s tests -p "test_*.py" -v`)
+## 7) CI
 
-## Linux / macOS instrukcija
+GitHub Actions workflow:
+- `.github/workflows/tests.yml`
 
-No projekta mapes:
-
-```bash
-python3 -m unittest discover -s tests -p 'test_*.py' -v
-```
-
-## Docker palaišana
-
-Prasības:
-- uzinstalēts Docker ar `docker compose`.
-
-Palaide:
-
-```bash
-make test-docker
-```
-
-Vai ekvivalenti:
-
-```bash
-docker compose -f docker-compose.test.yml run --rm tests
-```
-
-## Piekļuve testēšanas videi Docker konteinerā
-
-Testēšanas vide ir pieejama caur servisu `tests` failā `docker-compose.test.yml`.
-
-```bash
-docker compose -f docker-compose.test.yml run --rm tests sh
-```
-
-No turienes:
-
-```bash
-python -m unittest discover -s tests -p 'test_*.py' -v
-```
-
-## Biežākās kļūdas
-
-- `bash is not recognized` (Windows): nelieto `bash`, izmanto tieši PowerShell komandas augstāk.
-- `ImportError: Start directory is not importable: 'tests'`: pārliecinies, ka komandu palaid no projekta saknes mapes.
+Tas palaiž unit testus uz `push` un `pull_request`.

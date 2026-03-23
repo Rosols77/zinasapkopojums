@@ -8,3 +8,7 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+__pycache__/
+tests/__pycache__/
+artifacts/*.json
+!artifacts/.gitkeep

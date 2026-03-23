@@ -8,6 +8,10 @@ jobs:
   unittest:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,8 +21,17 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run tests (discover)
-        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Debug env
+        run: |
+          python --version
+          pwd
+          ls -la
 
-      - name: Run tests (script)
+      - name: Run unit tests
         run: python run_tests.py
+
+      - name: Run observability demo
+        run: python run_observability_demo.py
+
+      - name: Ensure report exists
+        run: test -f artifacts/latest_report.json

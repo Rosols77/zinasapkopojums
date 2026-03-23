@@ -21,5 +21,8 @@ if __name__ == "__main__":
     print(f"Total events: {report['total_events']}")
     print(f"Sources: {report['sources']}")
     print(f"Latency: {report['latency']}")
+    print(f"Per-source latency: {report['per_source_latency']}")
+    print(f"Quality checks: {report['quality']}")
+    print(f"Security checks: {report['security']}")
     print(f"Status: {report['status']}")
     print(f"Saved JSON report: {out_path}")
