@@ -14,3 +14,5 @@ artifacts/*.json
 !artifacts/.gitkeep
 
 *.key
+*.pyc
+*.exe
