@@ -4,7 +4,7 @@ import sqlite3
 import tempfile
 import unittest
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -27,6 +27,8 @@ class IntegrationTests(unittest.TestCase):
         news_app.user_store = news_app.SecureUserStore(news_app.USERS_DATA_FILE, news_app.USERS_KEY_FILE)
 
         news_app.app.config.update(TESTING=True, SECRET_KEY="test-secret")
+        news_app.LOGIN_ATTEMPTS.clear()
+        news_app.LOGIN_LOCKED_UNTIL.clear()
         news_app.init_db()
         self.client = news_app.app.test_client()
 
@@ -100,6 +102,118 @@ class IntegrationTests(unittest.TestCase):
 
         self.assertEqual(index_response.status_code, 200)
 
+    def test_register_rejects_invalid_email_format(self) -> None:
+        response = self.client.post(
+            "/register",
+            data={
+                "email": "invalid-email",
+                "display_name": "Alice",
+                "password": "strongpass1",
+                "password_repeat": "strongpass1",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(news_app.user_store._read(), {})
+
+    def test_register_rejects_short_password(self) -> None:
+        response = self.client.post(
+            "/register",
+            data={
+                "email": "alice@example.com",
+                "display_name": "Alice",
+                "password": "short7",
+                "password_repeat": "short7",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(news_app.user_store._read(), {})
+
+    def test_register_rejects_mismatched_passwords(self) -> None:
+        response = self.client.post(
+            "/register",
+            data={
+                "email": "alice@example.com",
+                "display_name": "Alice",
+                "password": "strongpass1",
+                "password_repeat": "strongpass2",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(news_app.user_store._read(), {})
+
+    def test_register_rejects_duplicate_email(self) -> None:
+        first = self.client.post(
+            "/register",
+            data={
+                "email": "dupe@example.com",
+                "display_name": "First",
+                "password": "strongpass1",
+                "password_repeat": "strongpass1",
+            },
+        )
+        self.assertEqual(first.status_code, 302)
+
+        second = self.client.post(
+            "/register",
+            data={
+                "email": "dupe@example.com",
+                "display_name": "Second",
+                "password": "strongpass1",
+                "password_repeat": "strongpass1",
+            },
+        )
+        self.assertEqual(second.status_code, 200)
+
+        users = news_app.user_store._read()
+        self.assertEqual(len(users), 1)
+        self.assertEqual(users["dupe@example.com"]["display_name"], "First")
+
+    def test_login_wrong_password_does_not_authenticate(self) -> None:
+        created, _ = news_app.user_store.create_user("login@example.com", "Login User", "strongpass1")
+        self.assertTrue(created)
+
+        response = self.client.post(
+            "/login",
+            data={"email": "login@example.com", "password": "wrong-pass"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        with self.client.session_transaction() as session:
+            self.assertNotIn("user_email", session)
+
+    def test_login_locks_after_max_failures_and_recovers_after_cooldown(self) -> None:
+        email = "lock@example.com"
+        created, _ = news_app.user_store.create_user(email, "Lock User", "strongpass1")
+        self.assertTrue(created)
+
+        for _ in range(news_app.LOGIN_MAX_FAILURES):
+            response = self.client.post(
+                "/login",
+                data={"email": email, "password": "wrong-pass"},
+            )
+            self.assertEqual(response.status_code, 200)
+
+        locked_response = self.client.post(
+            "/login",
+            data={"email": email, "password": "strongpass1"},
+        )
+        self.assertEqual(locked_response.status_code, 200)
+        with self.client.session_transaction() as session:
+            self.assertNotIn("user_email", session)
+
+        news_app.LOGIN_LOCKED_UNTIL[email] = datetime.now(timezone.utc) - timedelta(seconds=1)
+        success_response = self.client.post(
+            "/login",
+            data={"email": email, "password": "strongpass1"},
+        )
+        self.assertEqual(success_response.status_code, 302)
+        self.assertTrue(success_response.headers["Location"].endswith("/"))
+        with self.client.session_transaction() as session:
+            self.assertEqual(session.get("user_email"), email)
+
     def test_refresh_ingests_and_deduplicates_articles(self) -> None:
         self._login_session()
 
@@ -154,6 +268,84 @@ class IntegrationTests(unittest.TestCase):
                 (user_id, article_id),
             ).fetchone()["c"]
         self.assertEqual(int(saved_count_after), 0)
+
+    def test_save_with_important_tag_records_db_and_activity(self) -> None:
+        email = "important@example.com"
+        created, _ = news_app.user_store.create_user(email, "Important User", "strongpass1")
+        self.assertTrue(created)
+        user_id = self._login_session(email=email, display_name="Important User")
+        article_id = self._seed_article("Important News", "BBC", "https://example.com/important")
+
+        response = self.client.post("/save", data={"article_id": article_id, "tag": "important"})
+        self.assertEqual(response.status_code, 302)
+
+        with self._db() as conn:
+            count = conn.execute(
+                "SELECT COUNT(*) AS c FROM saved_articles WHERE user_id = ? AND article_id = ? AND tag = 'important'",
+                (user_id, article_id),
+            ).fetchone()["c"]
+        self.assertEqual(int(count), 1)
+
+        stored_users = news_app.user_store._read()
+        activity = stored_users[email]["activity"]
+        self.assertIn(article_id, activity["saved_important_article_ids"])
+
+    def test_save_with_invalid_tag_is_rejected(self) -> None:
+        email = "invalid-tag@example.com"
+        created, _ = news_app.user_store.create_user(email, "Invalid Tag User", "strongpass1")
+        self.assertTrue(created)
+        user_id = self._login_session(email=email, display_name="Invalid Tag User")
+        article_id = self._seed_article("Invalid Tag News", "BBC", "https://example.com/invalid-tag")
+
+        response = self.client.post("/save", data={"article_id": article_id, "tag": "custom"})
+        self.assertEqual(response.status_code, 302)
+
+        with self._db() as conn:
+            count = conn.execute(
+                "SELECT COUNT(*) AS c FROM saved_articles WHERE user_id = ? AND article_id = ?",
+                (user_id, article_id),
+            ).fetchone()["c"]
+        self.assertEqual(int(count), 0)
+
+        stored_users = news_app.user_store._read()
+        activity = stored_users[email]["activity"]
+        self.assertEqual(activity["saved_later_article_ids"], [])
+        self.assertEqual(activity["saved_important_article_ids"], [])
+
+    def test_save_with_missing_tag_does_not_insert(self) -> None:
+        user_id = self._login_session()
+        article_id = self._seed_article("Missing Tag News", "BBC", "https://example.com/missing-tag")
+
+        response = self.client.post("/save", data={"article_id": article_id})
+        self.assertEqual(response.status_code, 302)
+
+        with self._db() as conn:
+            count = conn.execute(
+                "SELECT COUNT(*) AS c FROM saved_articles WHERE user_id = ? AND article_id = ?",
+                (user_id, article_id),
+            ).fetchone()["c"]
+        self.assertEqual(int(count), 0)
+
+    def test_save_post_spam_stays_idempotent(self) -> None:
+        email = "spam@example.com"
+        created, _ = news_app.user_store.create_user(email, "Spam User", "strongpass1")
+        self.assertTrue(created)
+        user_id = self._login_session(email=email, display_name="Spam User")
+        article_id = self._seed_article("Spam Target", "BBC", "https://example.com/spam-target")
+
+        for _ in range(100):
+            response = self.client.post("/save", data={"article_id": article_id, "tag": "later"})
+            self.assertEqual(response.status_code, 302)
+
+        with self._db() as conn:
+            count = conn.execute(
+                "SELECT COUNT(*) AS c FROM saved_articles WHERE user_id = ? AND article_id = ? AND tag = 'later'",
+                (user_id, article_id),
+            ).fetchone()["c"]
+        self.assertEqual(int(count), 1)
+
+        activity = news_app.user_store._read()[email]["activity"]
+        self.assertEqual(activity["saved_later_article_ids"].count(article_id), 1)
 
     def test_ignore_source_hides_source_articles_from_index(self) -> None:
         self._login_session()

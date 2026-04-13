@@ -34,6 +34,12 @@ TOPIC_KEYWORDS = {
     "Tehnoloģijas": ["tech", "tehnoloģ", "software", "startup"],
 }
 
+ALLOWED_SAVE_TAGS = {"later", "important"}
+LOGIN_MAX_FAILURES = 5
+LOGIN_LOCKOUT_SECONDS = 60
+LOGIN_ATTEMPTS: Dict[str, int] = {}
+LOGIN_LOCKED_UNTIL: Dict[str, datetime] = {}
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret")
 
@@ -762,13 +768,35 @@ def login() -> str:
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
+        now = datetime.now(timezone.utc)
+
+        lock_until = LOGIN_LOCKED_UNTIL.get(email)
+        if lock_until and now < lock_until:
+            remaining = max(1, int((lock_until - now).total_seconds()))
+            flash(f"Pārāk daudz mēģinājumu. Mēģini vēlreiz pēc {remaining} sek.", "danger")
+            return render_template("login.html")
+
+        if lock_until and now >= lock_until:
+            LOGIN_LOCKED_UNTIL.pop(email, None)
+            LOGIN_ATTEMPTS.pop(email, None)
+
         user = user_store.authenticate(email, password)
         if user:
+            LOGIN_ATTEMPTS.pop(email, None)
+            LOGIN_LOCKED_UNTIL.pop(email, None)
             session["user_email"] = user["email"]
             session["display_name"] = user["display_name"]
             user_id = get_or_create_user(user["email"], user["display_name"])
             session["preferred_theme"] = get_user_profile_data(user_id)["preferred_theme"]
             return redirect(url_for("index"))
+
+        failures = LOGIN_ATTEMPTS.get(email, 0) + 1
+        LOGIN_ATTEMPTS[email] = failures
+        if failures >= LOGIN_MAX_FAILURES:
+            LOGIN_LOCKED_UNTIL[email] = now + timedelta(seconds=LOGIN_LOCKOUT_SECONDS)
+            flash("Pārāk daudz neveiksmīgu mēģinājumu. Konts īslaicīgi bloķēts.", "danger")
+            return render_template("login.html")
+
         flash("Nepareizs e-pasts vai parole.", "danger")
     return render_template("login.html")
 
@@ -831,20 +859,31 @@ def save_article() -> str:
     email = current_user_email()
     article_id = request.form.get("article_id")
     tag = request.form.get("tag")
-    if article_id and tag:
+    if not article_id or not tag:
+        return redirect(request.referrer or url_for("index"))
+
+    if tag not in ALLOWED_SAVE_TAGS:
+        flash("Nederīgs saglabāšanas tips.", "warning")
+        return redirect(request.referrer or url_for("index"))
+
+    try:
         article_id_int = int(article_id)
-        with get_db() as conn:
-            conn.execute(
-                """
-                INSERT OR IGNORE INTO saved_articles (user_id, article_id, tag, created_at)
-                VALUES (?, ?, ?, ?)
-                """,
-                (user_id, article_id_int, tag, datetime.now(timezone.utc).isoformat()),
-            )
-        if tag == "later":
-            user_store.record_activity(email, "save_later", article_id_int)
-        if tag == "important":
-            user_store.record_activity(email, "save_important", article_id_int)
+    except ValueError:
+        flash("Nederīgs raksta identifikators.", "warning")
+        return redirect(request.referrer or url_for("index"))
+
+    with get_db() as conn:
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO saved_articles (user_id, article_id, tag, created_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (user_id, article_id_int, tag, datetime.now(timezone.utc).isoformat()),
+        )
+    if tag == "later":
+        user_store.record_activity(email, "save_later", article_id_int)
+    if tag == "important":
+        user_store.record_activity(email, "save_important", article_id_int)
     return redirect(request.referrer or url_for("index"))
 
 
