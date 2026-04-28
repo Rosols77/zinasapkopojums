@@ -39,18 +39,19 @@
         </div>
     </form>
     <form class="align-self-end" method="post" action="{{ url_for('save_search') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="query" value="{{ query }}">
         <button class="btn btn-outline-secondary" type="submit" {% if not query %}disabled{% endif %}>Saglabāt meklējumu</button>
     </form>
 </div>
 
-<div class="row g-3">
-    <div class="col-lg-3">
+<div class="news-page-layout">
+    <aside class="topic-sidebar-column">
         <div class="card info-card">
             <div class="card-body">
                 <h5 class="card-title">Atspoguļojums pēc tēmām</h5>
                 {% if topic_counts %}
-                    <ul class="list-unstyled mb-0">
+                    <ul class="list-unstyled mb-0 topic-list">
                         {% for topic, count in topic_counts.items() %}
                             <li class="d-flex justify-content-between">
                                 <a href="{{ url_for('compare', topic=topic) }}">{{ topic }}</a>
@@ -63,15 +64,15 @@
                 {% endif %}
             </div>
         </div>
-    </div>
+    </aside>
 
-    <div class="col-lg-9">
+    <section class="news-feed-column">
         {% if articles %}
             <div class="d-grid gap-3">
                 {% for article in articles %}
                     <div class="card article-card">
                         <div class="card-body">
-                            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                            <div class="article-layout">
                                 {% if article.image_url %}<div class="article-media-wrap">
                                     <img class="news-image" src="{{ article.image_url }}" alt="Ziņas attēls" loading="lazy">
                                 </div>{% endif %}
@@ -81,22 +82,29 @@
                                         {{ article.source }} • {{ article.published_at[:16].replace('T', ' ') }}
                                         {% if article.location %} • {{ article.location }}{% endif %}
                                     </p>
-                                    <p class="card-text">{{ article.summary|safe }}</p>
-                                    <div class="d-flex flex-wrap gap-2">
+                                    {% if article.summary %}
+                                        <div class="article-summary" data-summary-wrap>
+                                            <p class="card-text article-summary-text" data-summary-text>{{ article.summary }}</p>
+                                            <button class="btn btn-sm btn-outline-primary article-read-more" type="button" data-summary-toggle hidden>Lasīt vairāk</button>
+                                        </div>
+                                    {% endif %}
+                                    <div class="d-flex flex-wrap gap-2 article-meta-actions">
                                         <span class="badge bg-secondary">{{ article.topic }}</span>
                                         {% if article.id in viewed_ids %}<span class="badge bg-info text-dark">Skatīts</span>{% endif %}
                                         <a class="btn btn-sm btn-outline-primary" href="{{ url_for('open_article', article_id=article.id) }}" target="_blank">Lasīt pilnu</a>
                                     </div>
                                 </div>
-                                <div class="d-flex flex-column gap-2 align-self-start">
+                                <div class="d-flex flex-column gap-2 align-self-start article-actions">
                                     {% if article.id in saved_later %}
                                         <form method="post" action="{{ url_for('unsave_article') }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <input type="hidden" name="article_id" value="{{ article.id }}">
                                             <input type="hidden" name="tag" value="later">
                                             <button class="btn btn-sm btn-outline-success" type="submit">Noņemt no "lasīt vēlāk"</button>
                                         </form>
                                     {% else %}
                                         <form method="post" action="{{ url_for('save_article') }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <input type="hidden" name="article_id" value="{{ article.id }}">
                                             <input type="hidden" name="tag" value="later">
                                             <button class="btn btn-sm btn-success" type="submit">Lasīt vēlāk</button>
@@ -105,12 +113,14 @@
 
                                     {% if article.id in saved_important %}
                                         <form method="post" action="{{ url_for('unsave_article') }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <input type="hidden" name="article_id" value="{{ article.id }}">
                                             <input type="hidden" name="tag" value="important">
                                             <button class="btn btn-sm btn-outline-warning" type="submit">Noņemt svarīgo</button>
                                         </form>
                                     {% else %}
                                         <form method="post" action="{{ url_for('save_article') }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <input type="hidden" name="article_id" value="{{ article.id }}">
                                             <input type="hidden" name="tag" value="important">
                                             <button class="btn btn-sm btn-warning" type="submit">Atzīmēt kā svarīgu</button>
@@ -118,11 +128,13 @@
                                     {% endif %}
 
                                     <form method="post" action="{{ url_for('ignore_article') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <input type="hidden" name="article_id" value="{{ article.id }}">
                                         <button class="btn btn-sm btn-outline-danger" type="submit">Ignorēt rakstu</button>
                                     </form>
 
                                     <form method="post" action="{{ url_for('ignore_source') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <input type="hidden" name="source" value="{{ article.source }}">
                                         <button class="btn btn-sm btn-outline-secondary" type="submit">Ignorēt avotu</button>
                                     </form>
@@ -135,6 +147,6 @@
         {% else %}
             <div class="alert alert-info">Nav atrastu ziņu. Pamēģini citu filtru vai atjauno RSS.</div>
         {% endif %}
-    </div>
+    </section>
 </div>
 {% endblock %}

@@ -33,6 +33,7 @@
                             <li class="d-flex justify-content-between align-items-center">
                                 <a href="{{ url_for('index', q=item.query) }}">{{ item.query }}</a>
                                 <form method="post" action="{{ url_for('remove_saved_search') }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="search_id" value="{{ item.id }}">
                                     <button class="btn btn-sm btn-outline-danger" type="submit">Noņemt</button>
                                 </form>

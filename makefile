@@ -1,17 +1,24 @@
+# revizēts makefile ar opsistēmas atpazīšanu
+ifeq ($(shell python3 --version 2>/dev/null),)
+    PYTHON := python
+else
+    PYTHON := python3
+endif
+
 .PHONY: test test-local test-script test-observability test-all test-docker
 
 test: test-local
 
 test-local:
-	python3 -m unittest discover -s tests -p 'test_*.py' -v
+	$(PYTHON) -m unittest discover -s tests -p 'test_*.py' -v
 
 test-script:
-	python3 run_tests.py
+	$(PYTHON) run_tests.py
 
 test-observability:
-	python3 run_observability_demo.py
+	$(PYTHON) run_observability_demo.py
 
 test-all: test-local test-script test-observability
 
 test-docker:
-	docker compose -f docker-compose.test.yml run --rm tests
+	docker compose -f docker-compose.test.yml up --build --abort-on-container-exit

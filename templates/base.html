@@ -34,9 +34,11 @@
                         <option value="shakespeare" {% if preferred_theme == 'shakespeare' %}selected{% endif %}>Shakespeare</option>
                     </select>
                     <form method="post" action="{{ url_for('refresh') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button class="btn btn-light btn-sm" type="submit">Atjaunot ziņas</button>
                     </form>
                     <form method="post" action="{{ url_for('logout') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button class="btn btn-outline-light btn-sm" type="submit">Izrakstīties</button>
                     </form>
                 </div>
@@ -61,11 +63,30 @@
     {% block content %}{% endblock %}
 </main>
 
+<div class="news-zoom-controls" aria-label="Ziņu izmēra tālummaiņa">
+    <button class="btn btn-sm btn-outline-primary" type="button" data-news-zoom="out" title="Samazināt ziņas">−</button>
+    <label class="news-zoom-range-label" for="newsZoomRange">Ziņu izmērs</label>
+    <input id="newsZoomRange"
+           class="news-zoom-range"
+           type="range"
+           min="80"
+           max="220"
+           step="5"
+           value="110"
+           data-news-zoom-slider
+           aria-label="Regulēt ziņu izmēru procentos">
+    <input class="news-zoom-number" type="text" inputmode="numeric" value="110%" data-news-zoom-input aria-label="Ievadīt ziņu izmēru procentos, piemēram 125%">
+    <span class="news-zoom-label" data-news-zoom-label>110%</span>
+    <button class="btn btn-sm btn-outline-primary" type="button" data-news-zoom="in" title="Palielināt ziņas">+</button>
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-news-zoom="reset" title="Atiestatīt izmēru">↺</button>
+</div>
+
 <audio id="vacation-audio" loop preload="none">
     <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_6db6a5de68.mp3?filename=sea-waves-ambient-110173.mp3" type="audio/mpeg">
 </audio>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/news_zoom.js') }}"></script>
 </body>
 </html>

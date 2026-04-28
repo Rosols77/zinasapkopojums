@@ -1,0 +1,95 @@
+
+/* Responsīvs, lielāks ziņu izkārtojums */
+main.container {
+    max-width: min(1680px, 96vw);
+}
+
+.article-card {
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.article-card .card-body {
+    padding: clamp(1.1rem, 1.6vw, 2rem);
+}
+
+.article-card .card-title {
+    font-size: clamp(1.2rem, 1.05rem + 0.8vw, 2rem);
+    line-height: 1.22;
+    margin-bottom: 0.65rem;
+}
+
+.article-card .card-text {
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.18rem);
+    line-height: 1.6;
+}
+
+.article-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 34%) minmax(0, 1fr) auto;
+    gap: clamp(1rem, 1.8vw, 2rem);
+    align-items: start;
+}
+
+.article-media-wrap {
+    width: 100%;
+    min-width: 0;
+}
+
+.news-image {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: clamp(210px, 20vw, 380px) !important;
+    min-height: 210px !important;
+    max-height: 420px !important;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.article-actions {
+    min-width: 190px;
+}
+
+.topic-list {
+    columns: 1;
+}
+
+@media (min-width: 1400px) {
+    .news-feed-column {
+        width: 78%;
+    }
+    .topic-sidebar-column {
+        width: 22%;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .article-layout {
+        grid-template-columns: minmax(220px, 38%) minmax(0, 1fr);
+    }
+    .article-actions {
+        grid-column: 1 / -1;
+        min-width: 0;
+        flex-direction: row !important;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 767.98px) {
+    main.container {
+        max-width: 100%;
+        padding-left: 0.8rem;
+        padding-right: 0.8rem;
+    }
+    .article-layout {
+        grid-template-columns: 1fr;
+    }
+    .news-image {
+        height: clamp(230px, 58vw, 360px) !important;
+    }
+    .article-actions form,
+    .article-actions .btn {
+        width: 100%;
+    }
+}

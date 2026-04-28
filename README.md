@@ -154,3 +154,7 @@ Attiecīgais darba plāns tika izveidots, atbilstoši tam, ko zinām pašlaik, d
 ---
 ## Literatūra un informācijas avoti
 - Edgara, Riharda un Bruno zoles mājaslapa (skat. iepriekšējo gadu projektus)
+
+## Drošības hotfix piezīme
+
+Šī versija satur papildu drošības labojumus: CSRF aizsardzību, drošu redirect apstrādi, produkcijas `SECRET_KEY`/`USER_DATA_KEY` prasības, aizsargātus maršrutus un ievades validāciju pret 500 kļūdām. Skatīt `NEXT_STEPS.md`.

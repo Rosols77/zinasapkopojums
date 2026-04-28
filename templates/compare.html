@@ -3,23 +3,31 @@
 {% block content %}
 <h2 class="mb-3">Salīdzinājums tēmai: {{ topic }}</h2>
 {% if grouped %}
-    <div class="row g-3">
+    <div class="comparison-grid">
         {% for source, items in grouped.items() %}
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-header bg-primary text-white">{{ source }}</div>
-                    <div class="card-body">
-                        <ul class="list-unstyled">
-                            {% for article in items[:5] %}
-                                <li class="mb-3 d-flex gap-2">
-                                    {% if article.image_url %}<img class="news-image" src="{{ article.image_url }}" alt="Ziņas attēls" loading="lazy">{% endif %}
-                                    <div>
+            <div class="card compare-source-card h-100">
+                <div class="card-header bg-primary text-white fw-semibold">{{ source }}</div>
+                <div class="card-body">
+                    <div class="compare-list">
+                        {% for article in items[:6] %}
+                            <article class="compare-article">
+                                {% if article.image_url %}
+                                    <img class="compare-news-image" src="{{ article.image_url }}" alt="Ziņas attēls" loading="lazy">
+                                {% endif %}
+                                <div class="compare-article-body">
+                                    <h3 class="compare-title">
                                         <a href="{{ url_for('open_article', article_id=article.id) }}" target="_blank">{{ article.title }}</a>
-                                        <div class="small text-muted">{{ article.published_at[:16].replace('T', ' ') }}</div>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
+                                    </h3>
+                                    <div class="small text-muted mb-1">{{ article.published_at[:16].replace('T', ' ') }}</div>
+                                    {% if article.summary %}
+                                        <div class="article-summary" data-summary-wrap>
+                                            <p class="compare-summary article-summary-text" data-summary-text>{{ article.summary }}</p>
+                                            <button class="btn btn-sm btn-outline-primary article-read-more" type="button" data-summary-toggle hidden>Lasīt vairāk</button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% endfor %}
                     </div>
                 </div>
             </div>

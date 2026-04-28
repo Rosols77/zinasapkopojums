@@ -7,6 +7,7 @@
             <div class="card-body">
                 <h4 class="mb-3">Profils</h4>
                 <form method="post" class="row g-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="col-12">
                         <label class="form-label">Lietotājvārds</label>
                         <input type="text" name="display_name" class="form-control" value="{{ profile.display_name }}" required>

@@ -7,6 +7,7 @@
             <div class="card-body">
                 <h4 class="card-title mb-3">Izveidot kontu</h4>
                 <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <label class="form-label">Lietotājvārds</label>
                     <input type="text" name="display_name" class="form-control mb-3" required>
 

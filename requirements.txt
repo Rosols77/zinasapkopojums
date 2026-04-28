@@ -1,0 +1,5 @@
+Flask==3.0.0
+feedparser==6.0.11
+cryptography==42.0.8
+requests==2.32.3
+certifi==2024.8.30
